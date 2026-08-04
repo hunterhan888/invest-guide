@@ -1,0 +1,9 @@
+.env
+node_modules/
+dist/
+bin/
+*.db
+*.log
+logs/
+.superpowers/
+/backend/server

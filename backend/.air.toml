@@ -1,0 +1,37 @@
+# Air 热重载配置 — Invest Guide 后端
+# https://github.com/air-verse/air
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  # 编译命令
+  cmd = "go build -o /tmp/server ./cmd/server/"
+  # 启动编译产物的命令
+  bin = "/tmp/server"
+  # 监听文件变更的延迟（毫秒）— 避免频繁重编译
+  delay = 500
+  # 排除这些文件/目录
+  exclude_dir = ["bin", "tmp", "vendor", "tests", "logs"]
+  exclude_file = ["*_test.go"]
+  # 编译失败时终止旧进程
+  kill_delay = "1s"
+  # 日志输出到 stdout（容器日志收集）
+  log = "build-errors.log"
+  # 编译超时
+  cmd_timeout = 60
+  # 编译时不清屏（Docker logs 不需要）
+  stop_on_error = false
+
+[color]
+  # 容器内不需要颜色
+  main = ""
+
+[log]
+  # 显示编译时间
+  time = true
+
+[misc]
+  # 退出时清理临时文件
+  clean_on_exit = true

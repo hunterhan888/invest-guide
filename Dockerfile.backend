@@ -1,0 +1,54 @@
+# ============================================================
+# 开发阶段（默认）：gov1.26-alpine + Air 热重载
+# ============================================================
+FROM golang:1.26-alpine AS dev
+
+# CGO 依赖（SQLite 驱动需要）
+RUN apk add --no-cache gcc musl-dev
+
+# 安装 Air 热重载工具
+RUN go install github.com/air-verse/air/v2@latest
+
+WORKDIR /app/backend
+
+# 先复制依赖文件（利用 Docker 缓存层）
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+
+# 源码通过 bind mount 注入（开发时），此 COPY 仅用于构建缓存
+COPY backend/ ./
+
+# Air 配置通过 bind mount 或 COPY 均可
+EXPOSE 8080
+
+CMD ["air"]
+
+
+# ============================================================
+# 生产阶段：编译静态二进制，最小运行时镜像
+# ============================================================
+FROM golang:1.26-alpine AS builder
+
+RUN apk add --no-cache gcc musl-dev
+
+WORKDIR /app/backend
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+COPY backend/ ./
+
+# 编译静态二进制（CGO_ENABLED=1 因为 SQLite；生产推荐用 PostgreSQL 可设 0）
+RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o /app/server ./cmd/server/
+
+FROM alpine:3.21 AS prod
+
+RUN apk add --no-cache ca-certificates tzdata
+
+WORKDIR /app
+COPY --from=builder /app/server .
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+  CMD wget -qO- http://localhost:8080/api/v1/system/health || exit 1
+
+CMD ["./server"]

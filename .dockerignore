@@ -1,0 +1,53 @@
+# 密钥（.env.example 由 git 追踪，.dockerignore 不挡它）
+.env
+
+# 依赖
+node_modules/
+frontend/node_modules/
+
+# 编译产物
+dist/
+bin/
+backend/server
+backend/bin/
+frontend/dist/
+
+# 数据库
+*.db
+*.db-journal
+*.db-wal
+
+# 日志
+*.log
+logs/
+backend/logs/
+
+# Git
+.git/
+.gitignore
+.dockerignore
+
+# 工具状态
+.superpowers/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker 自身
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 测试覆盖率
+coverage.txt
+*.out
+
+# 数据文件（PDF/解析产物不入镜像）
+data/
+
+# OS
+.DS_Store
+Thumbs.db

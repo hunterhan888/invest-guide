@@ -1,0 +1,75 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "delete": "Delete",
+    "create": "New",
+    "send": "Send",
+    "stop": "Stop",
+    "empty": "No data"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "remember": "Remember me",
+      "toRegister": "New here? Sign up",
+      "subtitle": "Continue your investment research"
+    },
+    "register": {
+      "title": "Sign up",
+      "submit": "Sign up",
+      "toLogin": "Already have an account? Sign in",
+      "subtitle": "Create an account to start"
+    },
+    "field": {
+      "email": "Email",
+      "password": "Password",
+      "displayName": "Display name",
+      "confirmPassword": "Confirm password"
+    },
+    "error": {
+      "invalid": "Invalid email or password",
+      "conflict": "Email already registered",
+      "unauthorized": "Please sign in first",
+      "passwordMismatch": "The two passwords do not match"
+    }
+  },
+  "sidebar": {
+    "title": "Invest Guide",
+    "newConversation": "New chat",
+    "userMenu": { "logout": "Sign out" },
+    "toggle": "Toggle sidebar",
+    "group": { "today": "Today", "yesterday": "Yesterday", "earlier": "Earlier" }
+  },
+  "conversation": {
+    "empty": { "title": "No conversations", "hint": "Click \"New conversation\" to start" },
+    "list": { "deleteConfirm": "Delete this conversation?" }
+  },
+  "message": {
+    "sources": { "title": "Sources", "empty": "No sources" },
+    "streaming": { "pending": "Thinking…", "cursor": "▍" }
+  },
+  "composer": {
+    "placeholder": "Ask your investment question…",
+    "send": "Send",
+    "stop": "Stop",
+    "emptyInput": "Please enter a question",
+    "tooLong": "Question too long",
+    "error": { "reason": "Generation failed", "retry": "Retry" }
+  },
+  "home": {
+    "welcome": "Hi, how can I help you?",
+    "subtitle": "Country investment guide AI",
+    "tagline": "Backed by curated knowledge base · RAG-enhanced answers",
+    "recent": "Recent",
+    "newButton": "New chat"
+  },
+  "error": {
+    "generic": "Something went wrong",
+    "network": "Network error",
+    "unauthorized": "Session expired"
+  }
+}

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: invest
+      POSTGRES_PASSWORD: invest
+      POSTGRES_DB: investguide
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invest -d investguide"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: dev
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    env_file:
+      - .env
+    environment:
+      # 容器内连接 postgres 服务（覆盖 .env 中 localhost 默认值）
+      - DATABASE_URL=${DATABASE_URL:-postgres://invest:invest@postgres:5432/investguide?sslmode=disable}
+      # 日志输出到 stdout + 文件双写（文件映射到宿主机）
+      - LOG_FILE=logs/backend.log
+    volumes:
+      - ./backend:/app/backend        # 源码 bind mount（Air 热重载）
+      - ./backend/logs:/app/logs      # 日志映射到宿主机
+      - backend_tmp:/app/backend/tmp  # Air 临时文件（匿名卷，加速重编译）
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+      target: dev
+    ports:
+      - "5173:5173"
+    environment:
+      # 容器内 Vite 代理指向 backend 服务（覆盖 .env.development 中 localhost）
+      - VITE_API_PROXY_TARGET=http://backend:8080
+    volumes:
+      - ./frontend/src:/app/src      # 源码 bind mount（Vite HMR 即时生效）
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./frontend/.env.development:/app/.env.development
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  backend_tmp:
