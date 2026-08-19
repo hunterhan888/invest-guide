@@ -35,7 +35,7 @@ function groupConversations(
   return (Object.keys(groups) as GroupKey[]).map((key) => ({ key, items: groups[key] }));
 }
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -64,11 +64,11 @@ export default function Sidebar() {
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-collapsed={collapsed || undefined}>
       <div className={styles.logoRow}>
         <button type="button" className={styles.brand} onClick={goHome}>
           <CompassLogo size={24} />
-          <span className={styles.brandText}>{t('sidebar.title')}</span>
+          {!collapsed && <span className={styles.brandText}>{t('sidebar.title')}</span>}
         </button>
       </div>
 
@@ -79,7 +79,7 @@ export default function Sidebar() {
         icon={<PlusIcon size={14} />}
         onClick={goHome}
       >
-        {t('sidebar.newConversation')}
+        {!collapsed && t('sidebar.newConversation')}
       </Button>
 
       <div className={styles.regionArea}>

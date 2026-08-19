@@ -8,3 +8,8 @@
   border-top: 1px solid var(--dsw-alias-border-l1);
   padding: 6px;
 }
+
+.collapseBtn {
+  margin-top: 4px;
+  justify-content: center;
+}

@@ -51,6 +51,19 @@
   font-weight: 500;
 }
 
+.root[data-collapsed] .brandText {
+  display: none;
+}
+
+.root[data-collapsed] .newSession {
+  padding: 0;
+  justify-content: center;
+}
+
+.root[data-collapsed] .groupLabel {
+  display: none;
+}
+
 .regionArea {
   flex: 1;
   min-height: 0;
