@@ -30,4 +30,16 @@ describe('Modal', () => {
     await user.click(screen.getByTestId('modal-mask'));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('按 Esc 触发 onClose', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Modal open onClose={onClose}>
+        内容
+      </Modal>,
+    );
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalled();
+  });
 });
