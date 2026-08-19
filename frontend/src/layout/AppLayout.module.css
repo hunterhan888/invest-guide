@@ -1,0 +1,10 @@
+.sidebarSeat {
+  min-height: 0;
+  flex: 1;
+}
+
+.userMenuSeat {
+  flex: none;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  padding: 6px;
+}

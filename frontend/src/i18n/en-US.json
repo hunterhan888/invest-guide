@@ -40,7 +40,7 @@
   "sidebar": {
     "title": "Invest Guide",
     "newConversation": "New chat",
-    "userMenu": { "logout": "Sign out" },
+    "userMenu": { "logout": "Sign out", "theme": "Toggle theme" },
     "toggle": "Toggle sidebar",
     "group": { "today": "Today", "yesterday": "Yesterday", "earlier": "Earlier" }
   },
