@@ -68,7 +68,7 @@
   transition: opacity var(--ds-transition-duration) var(--ds-ease-in-out);
 }
 
-.detailsCol:hover ~ .handle[data-side='details']::after,
+.handle[data-side='details']:has(+ .detailsCol:hover)::after,
 .handle[data-side='details']:hover::after {
   opacity: 1;
 }

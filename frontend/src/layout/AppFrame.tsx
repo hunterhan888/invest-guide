@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useUiStore } from '@/stores/uiStore';
 import styles from './AppFrame.module.css';
 
@@ -8,6 +8,11 @@ type AppFrameProps = {
   details?: ReactNode;
 };
 
+type DraggingSide = 'sidebar' | 'details' | null;
+
+const MIN_COL_WIDTH = 200;
+const MAX_COL_WIDTH = 560;
+
 export function AppFrame({ sidebar, main, details }: AppFrameProps) {
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
   const detailsOpen = useUiStore((s) => s.detailsOpen);
@@ -15,13 +20,12 @@ export function AppFrame({ sidebar, main, details }: AppFrameProps) {
   const detailsWidth = useUiStore((s) => s.detailsWidth);
   const setSidebarWidth = useUiStore((s) => s.setSidebarWidth);
   const setDetailsWidth = useUiStore((s) => s.setDetailsWidth);
-
-  const draggingRef = useRef<'sidebar' | 'details' | null>(null);
+  const [dragging, setDragging] = useState<DraggingSide>(null);
 
   const onPointerDown = useCallback(
-    (side: 'sidebar' | 'details') => (e: React.PointerEvent) => {
+    (side: Exclude<DraggingSide, null>) => (e: React.PointerEvent) => {
       e.preventDefault();
-      draggingRef.current = side;
+      setDragging(side);
       const startX = e.clientX;
       const startWidth = side === 'sidebar' ? sidebarWidth : detailsWidth;
       const setter = side === 'sidebar' ? setSidebarWidth : setDetailsWidth;
@@ -29,15 +33,17 @@ export function AppFrame({ sidebar, main, details }: AppFrameProps) {
       function onMove(ev: PointerEvent) {
         const delta = ev.clientX - startX;
         const next = side === 'sidebar' ? startWidth + delta : startWidth - delta;
-        setter(Math.min(Math.max(next, 200), 560));
+        setter(Math.min(Math.max(next, MIN_COL_WIDTH), MAX_COL_WIDTH));
       }
       function onUp() {
-        draggingRef.current = null;
+        setDragging(null);
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
       }
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
     },
     [sidebarWidth, detailsWidth, setSidebarWidth, setDetailsWidth],
   );
@@ -45,7 +51,7 @@ export function AppFrame({ sidebar, main, details }: AppFrameProps) {
   return (
     <div
       className={styles.frame}
-      data-dragging={draggingRef.current != null}
+      data-dragging={dragging != null || undefined}
       style={{
         gridTemplateColumns: `${sidebarCollapsed ? 56 : sidebarWidth}px minmax(0, 1fr) ${
           detailsOpen ? detailsWidth : 0
