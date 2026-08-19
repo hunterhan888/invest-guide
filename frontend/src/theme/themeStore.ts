@@ -12,9 +12,10 @@ type ThemeState = {
 };
 
 function readSaved(): ThemeMode {
+  if (typeof window === 'undefined') return 'light';
   const saved = localStorage.getItem(THEME_KEY);
   if (saved === 'light' || saved === 'dark') return saved;
-  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
     return 'dark';
   }
   return 'light';

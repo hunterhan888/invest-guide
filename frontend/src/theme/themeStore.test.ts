@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useThemeStore } from './themeStore';
 
 describe('themeStore', () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    useThemeStore.setState({ mode: 'light' });
+  });
 
   it('toggle 在 light/dark 间切换并持久化', () => {
     useThemeStore.getState().setMode('light');
