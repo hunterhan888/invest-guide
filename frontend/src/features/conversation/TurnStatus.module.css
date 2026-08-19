@@ -4,6 +4,11 @@
   display: inline-flex;
   align-items: center;
   height: 26px;
+  max-width: var(--dsh-chat-content-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;

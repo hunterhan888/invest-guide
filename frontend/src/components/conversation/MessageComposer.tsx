@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/primitives/Button';
 import { Textarea } from '@/primitives/Textarea';
@@ -43,6 +43,12 @@ export function MessageComposer({
     setActiveMessageId(id);
     onStreamingChange?.(id);
   }
+
+  useEffect(() => {
+    return () => {
+      onStreamingChange?.(null);
+    };
+  }, [onStreamingChange]);
 
   function onEvent(e: SSEEvent) {
     if (e.type === 'heartbeat') return;
@@ -190,7 +196,15 @@ export function MessageComposer({
         />
         <div className={styles.actions}>
           {streaming ? (
-            <Button danger variant="ghost" icon={<StopIcon size={14} />} onClick={stop}>
+            <Button
+              danger
+              variant="ghost"
+              icon={<StopIcon size={14} />}
+              onClick={() => {
+                stop();
+                setActive(null);
+              }}
+            >
               {t('composer.stop')}
             </Button>
           ) : (
