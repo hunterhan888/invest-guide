@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, Spin, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/primitives/Button';
+import { PlusIcon } from '@/primitives/icons';
 import { useConversation } from '@/hooks/useConversation';
 import { useConversationStore } from '@/stores/conversationStore';
 import MessageList from '@/components/conversation/MessageList';
 import { MessageComposer } from '@/components/conversation/MessageComposer';
+import { TurnStatus } from '@/features/conversation/TurnStatus';
 import type { Message } from '@/api/conversation/types';
 import type { Paginated } from '@/api/types';
+import styles from './ConversationPage.module.css';
 
 type MessagesLike = { items: Message[] };
 type ComposerMutate = (
@@ -38,8 +40,8 @@ export default function ConversationPage() {
     if (id) setActive(id);
   }, [id, setActive]);
 
-  if (conv.error) return <Typography.Text type="danger">{t('error.generic')}</Typography.Text>;
-  if (!conv.data) return <Spin />;
+  if (conv.error) return <div className={styles.error}>{t('error.generic')}</div>;
+  if (!conv.data) return <div className={styles.loading}>{t('common.loading')}</div>;
 
   const composerMutate: ComposerMutate = (updater, opts) => {
     if (typeof updater === 'function') {
@@ -62,12 +64,13 @@ export default function ConversationPage() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
-        <span className="truncate text-[16px] font-semibold text-fg">{conv.data.title}</span>
+    <div className={styles.root}>
+      <header className={styles.header}>
+        <span className={styles.title}>{conv.data.title}</span>
         <Button
-          type="text"
-          icon={<PlusOutlined />}
+          variant="ghost"
+          size="sm"
+          icon={<PlusIcon size={14} />}
           onClick={() => {
             clearActive();
             navigate('/');
@@ -77,6 +80,7 @@ export default function ConversationPage() {
         </Button>
       </header>
       <MessageList messages={messages.data?.items ?? []} streamingId={streamingId ?? undefined} />
+      {streamingId && <TurnStatus />}
       <MessageComposer
         key={id}
         conversationId={id!}
