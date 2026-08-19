@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
-import { Button, Input } from 'antd';
-import { SendOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/primitives/Button';
+import { Textarea } from '@/primitives/Textarea';
+import { SendIcon, StopIcon } from '@/primitives/icons';
 import { sendMessage as apiSendMessage } from '@/api/conversation/conversation';
 import { useSSEStream, type SSEEvent } from '@/hooks/useSSEStream';
 import type { Message } from '@/api/conversation/types';
+import styles from './MessageComposer.module.css';
 
 type MessagesLike = { items: Message[] };
 type MutateFn = (
@@ -78,7 +80,6 @@ export function MessageComposer({
     }
   }
 
-  // 首页带入的待流式消息：等它出现在消息列表中再开流，避免事件先于列表加载而丢失
   const streamReady = !!activeMessageId && messages.items.some((m) => m.id === activeMessageId);
   const { state, stop } = useSSEStream({
     convId: conversationId,
@@ -137,7 +138,6 @@ export function MessageComposer({
       );
       setActive(messageId);
     } catch {
-      // 回滚乐观消息，避免失败气泡残留
       await mutateMessages(
         (cur) => ({
           items: (cur?.items ?? []).filter((m) => m.id !== tempUserId && m.id !== tempAsstId),
@@ -163,44 +163,42 @@ export function MessageComposer({
   const streaming = state === 'streaming';
 
   return (
-    <div className="px-4 pb-4 pt-2">
+    <div className={styles.wrap}>
       {errorReason && (
-        <div className="mx-auto mb-2 w-full max-w-[680px] flex items-center gap-2 text-fg-secondary text-sm">
+        <div className={styles.errorRow}>
           <span>
             {t('composer.error.reason')}: {errorReason}
           </span>
-          <Button size="small" onClick={() => void resend()}>
+          <Button size="sm" variant="outline" onClick={() => void resend()}>
             {t('composer.error.retry')}
           </Button>
         </div>
       )}
-      <div className="composer-card mx-auto w-full max-w-[680px] px-4 py-3 relative">
-        <Input.TextArea
+      <div className={styles.card}>
+        <Textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={t('composer.placeholder')}
           autoSize={{ minRows: 1, maxRows: 6 }}
           disabled={streaming}
-          className="!bg-transparent !border-none !shadow-none !rounded-none"
-          onPressEnter={(e) => {
-            if (!e.shiftKey) {
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               send();
             }
           }}
         />
-        <div className="flex justify-end mt-2">
+        <div className={styles.actions}>
           {streaming ? (
-            <Button danger icon={<StopOutlined />} onClick={stop} className="!rounded-full">
+            <Button danger variant="ghost" icon={<StopIcon size={14} />} onClick={stop}>
               {t('composer.stop')}
             </Button>
           ) : (
             <Button
-              type="primary"
-              icon={<SendOutlined />}
+              variant="primary"
+              icon={<SendIcon size={14} />}
               onClick={() => void send()}
               disabled={!value.trim()}
-              className="!rounded-full"
             >
               {t('composer.send')}
             </Button>

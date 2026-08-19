@@ -1,0 +1,47 @@
+.wrap {
+  flex: none;
+  padding: 8px 24px 16px;
+}
+
+.errorRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: var(--dsh-chat-content-width);
+  margin: 0 auto 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--dsw-alias-interactive-bg-hover-danger);
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 13px;
+}
+
+.errorRow span {
+  flex: 1;
+  min-width: 0;
+}
+
+.card {
+  max-width: calc(var(--dsh-chat-content-width) + 16px);
+  margin: 0 auto;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  background: var(--dsw-specific-input-major);
+  padding: 10px 12px;
+  box-sizing: border-box;
+  box-shadow: var(--dsw-shadow-lv1);
+  transition:
+    border-color var(--ds-transition-duration) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration) var(--ds-ease-in-out);
+}
+
+.card:focus-within {
+  border-color: var(--dsw-alias-brand-primary-new-colorprimary-new-color);
+  box-shadow: 0 0 0 3px var(--dsw-alias-interactive-bg-hover-accent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
