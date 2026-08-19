@@ -6,4 +6,5 @@ bin/
 *.log
 logs/
 .superpowers/
+.worktrees/
 /backend/server
