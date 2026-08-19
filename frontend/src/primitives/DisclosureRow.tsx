@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import styles from './DisclosureRow.module.css';
 import { ChevronDownIcon } from './icons';
 
@@ -14,9 +14,15 @@ export function DisclosureRow({ title, children, defaultOpen = false, expanded, 
   const [innerOpen, setInnerOpen] = useState(defaultOpen);
   const open = expanded ?? innerOpen;
 
+  // When controlled, keep inner state in sync so a later switch to
+  // uncontrolled resumes from the current visual state.
+  useEffect(() => {
+    if (expanded !== undefined) setInnerOpen(expanded);
+  }, [expanded]);
+
   function toggle() {
     const next = !open;
-    setInnerOpen(next);
+    if (expanded === undefined) setInnerOpen(next);
     onToggle?.(next);
   }
 

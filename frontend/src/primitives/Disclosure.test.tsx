@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DisclosureRow } from './DisclosureRow';
@@ -24,6 +24,18 @@ describe('DisclosureRow', () => {
       </DisclosureRow>,
     );
     expect(screen.getByText('可见')).toBeInTheDocument();
+  });
+
+  it('点击时触发 onToggle', async () => {
+    const onToggle = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <DisclosureRow title="标题" onToggle={onToggle}>
+        <div>内容</div>
+      </DisclosureRow>,
+    );
+    await user.click(screen.getByText('标题'));
+    expect(onToggle).toHaveBeenCalledWith(true);
   });
 });
 
