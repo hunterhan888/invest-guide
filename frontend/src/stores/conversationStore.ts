@@ -15,7 +15,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
   activeId: null,
   selectedMessage: null,
   highlightSource: null,
-  setActive: (id) => set({ activeId: id }),
+  setActive: (id) => set({ activeId: id, selectedMessage: null, highlightSource: null }),
   clearActive: () => set({ activeId: null, selectedMessage: null, highlightSource: null }),
   setSelectedMessage: (m) => set({ selectedMessage: m, highlightSource: null }),
   setHighlightSource: (n) => set({ highlightSource: n }),

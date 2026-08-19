@@ -18,7 +18,10 @@ export function DetailsPanel() {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add(styles.highlight!);
     const timer = setTimeout(() => el.classList.remove(styles.highlight!), 2200);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      el.classList.remove(styles.highlight!);
+    };
   }, [highlightSource]);
 
   if (!message || !message.sources || message.sources.length === 0) {
