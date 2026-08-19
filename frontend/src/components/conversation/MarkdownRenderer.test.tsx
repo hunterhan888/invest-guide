@@ -15,9 +15,7 @@ describe('MarkdownRenderer', () => {
   });
 
   it('linkSourceRefs 处理 "（来源：片段[N]）" 完整格式，并吃掉前置换行', () => {
-    // 同一行
     expect(linkSourceRefs('注意安全。（来源：片段[1]）')).toBe('注意安全。[1](#src-1)');
-    // 前有换行 → 换行被吸收，芯片紧贴上一句末尾
     expect(linkSourceRefs('做好评估。\n（来源：片段【2】）')).toBe('做好评估。[2](#src-2)');
   });
 
@@ -32,7 +30,7 @@ describe('MarkdownRenderer', () => {
     expect(container.querySelector('script')).toBeNull();
   });
 
-  it('把「片段[N]」渲染为 NotebookLM 风格来源芯片', () => {
+  it('把「片段[N]」渲染为来源芯片', () => {
     const { container } = render(<MarkdownRenderer content={'参考片段[1]与片段[2]内容'} />);
     const chips = container.querySelectorAll('.source-chip');
     expect(chips).toHaveLength(2);
@@ -47,10 +45,9 @@ describe('MarkdownRenderer', () => {
     expect(onSourceRef).toHaveBeenCalledWith(3);
   });
 
-  it('传入 sources 时芯片可显示 Popover 来源内容', () => {
+  it('传入 sources 时芯片可渲染', () => {
     const sources = [{ id: 'c1', title: '测试来源', snippet: '这是测试片段内容' }];
     render(<MarkdownRenderer content={'参考片段[1]'} sources={sources} />);
-    // 芯片应该渲染出来
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 });
