@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Message } from '@/api/conversation/types';
 import MessageBubble from './MessageBubble';
+import styles from './MessageList.module.css';
 
 export default function MessageList({
   messages,
@@ -26,13 +27,13 @@ export default function MessageList({
   }, [messages]);
 
   return (
-    <div ref={containerRef} onScroll={onScroll} className="flex-1 overflow-auto px-4 py-6">
-      <div className="mx-auto w-full max-w-[680px] space-y-6">
+    <div ref={containerRef} onScroll={onScroll} className={styles.scroll}>
+      <div className={styles.column}>
         {messages.map((m) => (
           <MessageBubble key={m.id} message={m} streaming={m.id === streamingId} />
         ))}
       </div>
-      <div className="mx-auto w-full max-w-[680px]" ref={bottomRef} />
+      <div className={styles.column} ref={bottomRef} />
     </div>
   );
 }
