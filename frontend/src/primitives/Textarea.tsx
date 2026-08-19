@@ -2,7 +2,6 @@ import {
   forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useRef,
   type TextareaHTMLAttributes,
 } from 'react';
@@ -19,15 +18,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
 ) {
   const innerRef = useRef<HTMLTextAreaElement | null>(null);
 
-  useImperativeHandle(ref, () => innerRef.current as HTMLTextAreaElement);
-
   const resize = useCallback(() => {
     const el = innerRef.current;
-    if (!el) return;
+    if (!el || el.scrollHeight === 0) return;
     el.style.height = 'auto';
-    const max = autoSize?.maxRows ? autoSize.maxRows * 22 + 24 : undefined;
-    const next = Math.min(el.scrollHeight, max ?? el.scrollHeight);
-    el.style.height = `${next}px`;
+    const lineH = 22;
+    const min = autoSize?.minRows ? autoSize.minRows * lineH + 24 : undefined;
+    const max = autoSize?.maxRows ? autoSize.maxRows * lineH + 24 : undefined;
+    const height = Math.min(el.scrollHeight, max ?? el.scrollHeight);
+    el.style.height = `${Math.max(height, min ?? height)}px`;
   }, [autoSize]);
 
   useEffect(() => {
@@ -39,6 +38,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       ref={(el) => {
         innerRef.current = el;
         if (typeof ref === 'function') ref(el);
+        else if (ref) ref.current = el;
       }}
       className={`${styles.textarea} ${className ?? ''}`.trim()}
       onInput={resize}
