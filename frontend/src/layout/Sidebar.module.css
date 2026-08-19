@@ -68,14 +68,27 @@
   color: var(--dsw-alias-label-tertiary);
 }
 
-.item {
+.rowWrap {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+}
+
+.item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 6px 32px 6px 8px;
+  border: none;
   border-radius: 10px;
+  background: transparent;
   cursor: pointer;
   color: var(--dsw-alias-label-primary);
+  font-family: var(--dsw-font-family);
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
   transition: background var(--ds-transition-duration) var(--ds-ease-in-out);
 }
 
@@ -87,18 +100,24 @@
   background: var(--dsw-specific-sidebar-nav-item-active);
 }
 
+.item:focus-visible {
+  outline: 2px solid var(--dsw-alias-button-info-fill);
+  outline-offset: -1px;
+}
+
 .itemTitle {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
-  line-height: 22px;
 }
 
 .moreBtn {
-  flex: none;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
   display: none;
   align-items: center;
   justify-content: center;
@@ -111,8 +130,8 @@
   color: var(--dsw-alias-label-tertiary);
 }
 
-.item:hover .moreBtn,
-.item:focus-within .moreBtn {
+.rowWrap:hover .moreBtn,
+.rowWrap:focus-within .moreBtn {
   display: inline-flex;
 }
 

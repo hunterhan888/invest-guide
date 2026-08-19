@@ -42,6 +42,7 @@ export default function Sidebar() {
   const { data, mutate } = useConversations();
   const clearActive = useConversationStore((s) => s.clearActive);
   const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const groups = useMemo(() => groupConversations(data?.items ?? []), [data]);
 
@@ -51,10 +52,15 @@ export default function Sidebar() {
   }
 
   async function remove(convId: string) {
-    await deleteConversation(convId);
-    await mutate();
-    if (id === convId) goHome();
-    setPendingDelete(null);
+    setDeleting(true);
+    try {
+      await deleteConversation(convId);
+      await mutate();
+      if (id === convId) goHome();
+      setPendingDelete(null);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -83,27 +89,24 @@ export default function Sidebar() {
             {group.items.map((conv) => {
               const active = conv.id === id;
               return (
-                <div
-                  key={conv.id}
-                  className={`${styles.item} ${active ? styles.active : ''}`.trim()}
-                  data-active={active || undefined}
-                  onClick={() => navigate(`/conversations/${conv.id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') navigate(`/conversations/${conv.id}`);
-                  }}
-                >
-                  <span className={styles.itemTitle}>{conv.title}</span>
+                <div key={conv.id} className={styles.rowWrap}>
+                  <button
+                    type="button"
+                    className={`${styles.item} ${active ? styles.active : ''}`.trim()}
+                    aria-current={active ? 'page' : undefined}
+                    onClick={() => navigate(`/conversations/${conv.id}`)}
+                  >
+                    <span className={styles.itemTitle}>{conv.title}</span>
+                  </button>
                   <Tooltip content={t('common.delete')}>
                     <button
                       type="button"
                       className={styles.moreBtn}
+                      aria-label={t('common.delete')}
                       onClick={(e) => {
                         e.stopPropagation();
                         setPendingDelete(conv);
                       }}
-                      aria-label={t('common.delete')}
                     >
                       <MoreIcon size={14} />
                     </button>
@@ -127,6 +130,7 @@ export default function Sidebar() {
             <Button
               variant="primary"
               icon={<DeleteIcon size={14} />}
+              loading={deleting}
               onClick={() => pendingDelete && void remove(pendingDelete.id)}
             >
               {t('common.confirm')}
