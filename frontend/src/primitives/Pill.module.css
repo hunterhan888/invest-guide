@@ -1,0 +1,15 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--dsw-alias-markdown-tag);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.accent {
+  background: var(--dsw-static-deepseek-100);
+  color: var(--dsw-static-deepseek-600);
+}
