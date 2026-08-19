@@ -40,7 +40,12 @@ export function Dropdown({ trigger, items, align = 'start', className }: Dropdow
   }, [open]);
 
   return (
-    <div className={`${styles.root} ${className ?? ''}`.trim()} ref={rootRef}>
+    <div
+      className={`${styles.root} ${className ?? ''}`.trim()}
+      ref={rootRef}
+      aria-haspopup="menu"
+      aria-expanded={open}
+    >
       <div onClick={() => setOpen((v) => !v)}>{trigger}</div>
       {open && (
         <div className={`${styles.list} ${align === 'end' ? styles.alignEnd : ''}`.trim()} role="menu">

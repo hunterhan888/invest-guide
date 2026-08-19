@@ -22,7 +22,7 @@ describe('Dropdown', () => {
 
 describe('Tooltip', () => {
   it('渲染 tooltip 文本', () => {
-    render(<Tooltip content={<span>提示内容</span>}>hover</Tooltip>);
+    render(<Tooltip content="提示内容">hover</Tooltip>);
     expect(screen.getByText('提示内容')).toBeInTheDocument();
   });
 });

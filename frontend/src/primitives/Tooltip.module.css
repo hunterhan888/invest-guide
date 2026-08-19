@@ -3,12 +3,7 @@
   display: inline-flex;
 }
 
-.root:not([data-tooltip])::after {
-  display: none;
-}
-
-.root[data-tooltip]::after,
-.root .bubble {
+.bubble {
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
@@ -26,13 +21,7 @@
   transition: opacity var(--ds-transition-duration) var(--ds-ease-in-out);
 }
 
-.root[data-tooltip]::after {
-  content: attr(data-tooltip);
-}
-
-.root:hover[data-tooltip]::after,
 .root:hover .bubble,
-.root:focus-within[data-tooltip]::after,
 .root:focus-within .bubble {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
