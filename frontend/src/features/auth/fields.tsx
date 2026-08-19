@@ -6,7 +6,11 @@ export function Field({ label, error, children }: { label: ReactNode; error?: st
     <label className={styles.field}>
       <span className={styles.label}>{label}</span>
       {children}
-      {error && <span className={styles.error}>{error}</span>}
+      {error && (
+        <span className={styles.error} role="alert">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
