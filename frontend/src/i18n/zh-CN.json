@@ -48,6 +48,11 @@
     "empty": { "title": "暂无会话", "hint": "点击「新建会话」开始提问" },
     "list": { "deleteConfirm": "确认删除该会话？" }
   },
+  "details": {
+    "title": "引用详情",
+    "empty": "选择一条回复查看引用详情",
+    "tokens": "Tokens"
+  },
   "message": {
     "sources": { "title": "引用来源", "empty": "无引用" },
     "streaming": { "pending": "思考中…", "cursor": "▍" }

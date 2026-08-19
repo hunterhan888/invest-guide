@@ -48,6 +48,11 @@
     "empty": { "title": "No conversations", "hint": "Click \"New conversation\" to start" },
     "list": { "deleteConfirm": "Delete this conversation?" }
   },
+  "details": {
+    "title": "Citation details",
+    "empty": "Select a reply to view citation details",
+    "tokens": "Tokens"
+  },
   "message": {
     "sources": { "title": "Sources", "empty": "No sources" },
     "streaming": { "pending": "Thinking…", "cursor": "▍" }
