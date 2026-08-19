@@ -20,7 +20,7 @@ Invest Guide 是一个面向**国别投资指南**的 Web 端 AI 问答平台。
 | 异步任务 | 内存 goroutine pool + channel（生产可切 Redis） |
 | 缓存 | 内存 LRU（生产可切 Redis） |
 | 日志 | `log/slog`（结构化 JSON） |
-| 前端 | React 19 + TypeScript（Vite） |
+| 前端 | React 19 + TypeScript（Vite），CSS Modules + 自研 primitives；依赖 react-markdown / zustand / swr / react-router / i18next |
 
 ---
 
@@ -752,15 +752,27 @@ logger.Info("conversation created",
 ```
 frontend/src/
 ├── api/          # 类型化 HTTP 客户端 — 每个后端领域一个模块，附带 JWT；含 API 契约类型（types.ts）
-├── components/   # 共享 UI 组件（基于 antd）
+├── primitives/   # 自研基础组件（Button, Input, Textarea, Modal, Dropdown, Tooltip, Toast, DisclosureRow, Pill, Icon）+ 内联 SVG 图标（icons.tsx）
+├── layout/       # 应用布局（AppFrame, Sidebar, DetailsPanel, UserMenu, AppLayout）
 ├── pages/        # 路由页面（LoginPage, RegisterPage, HomePage, ConversationPage）
+├── features/     # 页面级功能组件（auth 表单、conversation TurnStatus、home HomeComposer）
+├── components/   # 跨功能共享组件（conversation MarkdownRenderer, MessageBubble, ...）
 ├── hooks/        # 自定义 hooks（useConversation, useSSEStream, ...）
-├── stores/       # Zustand store（auth, conversation, ui）
-├── i18n/         # 语言配置 + 资源文件（zh-CN, en-US）+ antd locale 联动
-├── styles/       # 全局样式 + Tailwind v4 入口（main.css） + antd-override.css
+├── stores/       # Zustand store（auth, conversation, ui, theme）
+├── theme/        # 主题（ThemeProvider + zustand themeStore 持久化）
+├── i18n/         # 语言配置 + 资源文件（zh-CN, en-US）
+├── styles/       # 设计 token（--dsw-*）+ 全局样式（tokens.css, base.css, scrollbar.css）
 ├── router.tsx    # 路由定义 + 鉴权守卫
 └── main.tsx
 ```
+
+### 设计 token 与主题
+
+- 颜色、间距、动效统一使用 `frontend/src/styles/tokens.css` 定义的 `--dsw-*` 设计 token
+- 浅色定义在 `body`，暗色定义在 `body[data-ds-dark-theme]` — 双主题在 CSS 侧只有这一个切换点
+- `theme/ThemeProvider` 维护 `body[data-ds-dark-theme]` 属性，主题偏好由 zustand
+  `themeStore` 持久化到 `localStorage`（默认跟随系统 `prefers-color-scheme`）
+- 禁止硬编码色值；全局样式只在 `styles/` 下
 
 ### 数据获取
 

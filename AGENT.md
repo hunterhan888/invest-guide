@@ -38,24 +38,20 @@
 
 ### UI 库与图标（仅前端）
 
-- 组件：`antd`（Ant Design v5，启 `cssVar: true`）— 不使用原生交互 HTML
-  （`<button>`、`<input>`、`<select>` 等）
-- 图标：`@ant-design/icons`
-- antd 主题与 locale 经根组件 `<ConfigProvider>` 注入；组件级定制优先用
-  `theme.token` / `theme.components`，必要时在 `frontend/src/styles/antd-override.css`
-  做深度选择器覆盖
+- 组件：自研基础组件库 `frontend/src/primitives/`（`Button`、`Input`、`Textarea`、
+  `Modal`、`Dropdown`、`Tooltip`、`Toast`、`DisclosureRow`、`Pill`、`Icon`）—
+  业务组件中不使用原生交互 HTML（`<button>`、`<input>`、`<select>` 等），
+  统一封装在 primitives 内
+- 图标：`frontend/src/primitives/icons.tsx` 内的内联 SVG，禁止引入图标库
 
 ### CSS（前端）
 
-- 优先使用 **Tailwind v4 原子类**；复杂样式使用 **CSS Modules**
-  （`ComponentName.module.css`，内部可用 `@apply` 引用 token）
-- 颜色必须使用 `frontend/src/styles/main.css` 中 `@theme` 定义的语义化 token
-  （桥接自 antd 的 `--ant-*` cssVar）或 CSS 变量 — 禁止硬编码色值
-- 全局样式只放在 `frontend/src/styles/`（`main.css` 为 Tailwind 入口，
-  `antd-override.css` 用于 antd 深度覆盖）
-- Preflight 已禁用以避免破坏 antd 注入的组件样式；轻量 base reset 仅在 `main.css` 内
-- 暗黑模式：`body[data-theme=dark]` 是 CSS 侧的唯一切换点；
-  Tailwind 的 `dark:` 变体绑定到该属性，antd 由 `ConfigProvider.algorithm` 驱动
+- 统一使用 **CSS Modules**（`ComponentName.module.css`）
+- 颜色、间距、动效必须使用 `frontend/src/styles/` 定义的 `--dsw-*` 设计 token
+  （浅色 `body` / 暗色 `body[data-ds-dark-theme]`）— 禁止硬编码色值
+- 全局样式只放在 `frontend/src/styles/`（`tokens.css`、`base.css`、`scrollbar.css`）
+- 暗黑模式：`body[data-ds-dark-theme]` 是 CSS 侧的唯一切换点，
+  由 `theme/ThemeProvider` 维护（zustand `themeStore` 持久化）
 
 ### TypeScript
 
@@ -79,8 +75,6 @@
 
 新增或修改面向用户的文案必须使用 i18n key；禁止硬编码字符串。
 语言在 `frontend/src/i18n/config.ts` 配置（默认 `zh-CN`，并支持 `en-US`）。
-antd 组件自身的文案（DatePicker、Modal 默认按钮等）由根组件 `<ConfigProvider>`
-按 `i18n.language` 切换 locale，与应用 i18n 同步切换。
 
 ## 架构
 
