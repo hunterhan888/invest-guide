@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { ToastProvider } from '@/primitives/ToastProvider';
 import { useAuthStore } from '@/stores/authStore';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -15,15 +16,17 @@ describe('RequireAuth', () => {
 
   it('未登录访问 / 重定向到 /login', async () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<NavigateIfNoToken />}>
-            <Route index element={<HomePage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
+      <ToastProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/" element={<NavigateIfNoToken />}>
+              <Route index element={<HomePage />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>,
     );
     expect(await screen.findByRole('button', { name: /登\s*录/ })).toBeInTheDocument();
   });
@@ -34,14 +37,16 @@ describe('RequireAuth', () => {
       user: { id: '1', email: 'a@b.com', displayName: 'A' },
     });
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<NavigateIfNoToken />}>
-            <Route index element={<HomePage />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>,
+      <ToastProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<NavigateIfNoToken />}>
+              <Route index element={<HomePage />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>,
     );
     expect(screen.getByText(/你好，有什么可以帮你/)).toBeInTheDocument();
   });

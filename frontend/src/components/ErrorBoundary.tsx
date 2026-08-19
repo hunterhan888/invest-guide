@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { Button, Result } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/primitives/Button';
+import styles from './ErrorBoundary.module.css';
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -27,14 +28,13 @@ export class ErrorBoundary extends Component<Props, State> {
 function ErrorFallback({ onReload }: { onReload: () => void }) {
   const { t } = useTranslation();
   return (
-    <Result
-      status="error"
-      title={t('error.generic')}
-      extra={
-        <Button type="primary" onClick={onReload}>
+    <div className={styles.root}>
+      <div className={styles.card}>
+        <p>{t('error.generic')}</p>
+        <Button variant="primary" onClick={onReload}>
           {t('common.retry')}
         </Button>
-      }
-    />
+      </div>
+    </div>
   );
 }

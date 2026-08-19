@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import AppLayout from './components/layout/AppLayout';
+import AppLayout from './layout/AppLayout';
 import HomePage from './pages/HomePage';
 import ConversationPage from './pages/ConversationPage';
 import { useAuthStore } from './stores/authStore';
