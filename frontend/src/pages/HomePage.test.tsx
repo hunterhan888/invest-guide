@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { App as AntdApp } from 'antd';
+import { ToastProvider } from '@/primitives/ToastProvider';
 import HomePage from './HomePage';
 
 const navigateMock = vi.fn();
@@ -32,15 +32,15 @@ describe('HomePage', () => {
     vi.mocked(sendMessage).mockResolvedValue({ messageId: 'msg-1' } as never);
 
     render(
-      <AntdApp>
+      <ToastProvider>
         <MemoryRouter>
           <HomePage />
         </MemoryRouter>
-      </AntdApp>,
+      </ToastProvider>,
     );
 
     await user.type(screen.getByRole('textbox'), '我想去巴基斯坦投资');
-    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button', { name: /发\s*送/ }));
 
     await vi.waitFor(() => {
       expect(createConversation).toHaveBeenCalledTimes(1);

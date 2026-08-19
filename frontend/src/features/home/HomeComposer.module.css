@@ -1,0 +1,23 @@
+.card {
+  width: 100%;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  background: var(--dsw-specific-input-major);
+  padding: 14px 16px;
+  box-sizing: border-box;
+  box-shadow: var(--dsw-shadow-lv1);
+  transition:
+    border-color var(--ds-transition-duration) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration) var(--ds-ease-in-out);
+}
+
+.card:focus-within {
+  border-color: var(--dsw-alias-brand-primary-new-colorprimary-new-color);
+  box-shadow: 0 0 0 3px var(--dsw-alias-interactive-bg-hover-accent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 10px;
+}
