@@ -2749,72 +2749,100 @@ cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src
 - Create: `frontend/src/layout/DetailsPanel.module.css`
 - Create: `frontend/src/layout/DetailsPanel.test.tsx`
 - Modify: `frontend/src/stores/conversationStore.ts`
+- Modify: `frontend/src/i18n/zh-CN.json`、`frontend/src/i18n/en-US.json`
 
-- [ ] **Step 1: 扩展 conversationStore**
+- [ ] **Step 1: 补充 i18n key（DetailsPanel 依赖）**
 
-编辑 `frontend/src/stores/conversationStore.ts`，加入选中消息与来源高亮状态：
+在 `frontend/src/i18n/zh-CN.json` 顶层新增：
+```json
+"details": {
+  "title": "引用详情",
+  "empty": "选择一条回复查看引用详情",
+  "tokens": "Tokens"
+},
+```
+在 `frontend/src/i18n/en-US.json` 顶层新增：
+```json
+"details": {
+  "title": "Citation details",
+  "empty": "Select a reply to view citation details",
+  "tokens": "Tokens"
+},
+```
+
+- [ ] **Step 2: 扩展 conversationStore（store 存整条消息）**
+
+编辑 `frontend/src/stores/conversationStore.ts`，加入选中消息与来源高亮状态。**本设计采用「store 存整条选中消息」方案，Task 14 的 AppLayout 据此实现，布局层无需重复请求消息：**
 
 ```ts
 import { create } from 'zustand';
+import type { Message } from '@/api/conversation/types';
 
 type ConversationState = {
   activeId: string | null;
-  selectedMessageId: string | null;
+  selectedMessage: Message | null;
   highlightSource: number | null;
   setActive: (id: string | null) => void;
   clearActive: () => void;
-  setSelectedMessageId: (id: string | null) => void;
+  setSelectedMessage: (m: Message | null) => void;
   setHighlightSource: (n: number | null) => void;
 };
 
 export const useConversationStore = create<ConversationState>((set) => ({
   activeId: null,
-  selectedMessageId: null,
+  selectedMessage: null,
   highlightSource: null,
   setActive: (id) => set({ activeId: id }),
-  clearActive: () => set({ activeId: null, selectedMessageId: null, highlightSource: null }),
-  setSelectedMessageId: (id) => set({ selectedMessageId: id, highlightSource: null }),
+  clearActive: () => set({ activeId: null, selectedMessage: null, highlightSource: null }),
+  setSelectedMessage: (m) => set({ selectedMessage: m, highlightSource: null }),
   setHighlightSource: (n) => set({ highlightSource: n }),
 }));
 ```
 
-- [ ] **Step 2: 写 DetailsPanel 测试**
+- [ ] **Step 3: 写 DetailsPanel 测试**
 
 创建 `frontend/src/layout/DetailsPanel.test.tsx`：
 ```tsx
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DetailsPanel } from './DetailsPanel';
 import { useConversationStore } from '@/stores/conversationStore';
 
+const msg = {
+  id: 'm1',
+  role: 'assistant' as const,
+  content: '回答',
+  sources: [{ id: 'c1', title: '来源一', snippet: '片段一' }],
+  tokensUsed: 123,
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
 describe('DetailsPanel', () => {
+  beforeEach(() => {
+    useConversationStore.getState().setSelectedMessage(null);
+    useConversationStore.getState().setHighlightSource(null);
+  });
+
   it('无选中消息时显示空态', () => {
-    render(<DetailsPanel message={null} />);
+    render(<DetailsPanel />);
     expect(screen.getByText(/引用详情/)).toBeInTheDocument();
   });
 
   it('展示选中消息的来源与元信息', () => {
-    const msg = {
-      id: 'm1',
-      role: 'assistant' as const,
-      content: '回答',
-      sources: [{ id: 'c1', title: '来源一', snippet: '片段一' }],
-      tokensUsed: 123,
-      createdAt: '2026-01-01T00:00:00Z',
-    };
-    render(<DetailsPanel message={msg} />);
+    useConversationStore.getState().setSelectedMessage(msg);
+    render(<DetailsPanel />);
     expect(screen.getByText('来源一')).toBeInTheDocument();
     expect(screen.getByText(/123/)).toBeInTheDocument();
   });
 });
 ```
 
-- [ ] **Step 3: 运行测试确认失败**
+- [ ] **Step 4: 运行测试确认失败**
 
 Run: `cd /home/hunter/code/invest-guide-workspace/invest-guide/frontend && bun run test src/layout/DetailsPanel.test.tsx`
 Expected: FAIL（找不到 `./DetailsPanel`）。
 
-- [ ] **Step 4: 实现 DetailsPanel**
+- [ ] **Step 5: 实现 DetailsPanel**
 
 创建 `frontend/src/layout/DetailsPanel.tsx`：
 ```tsx
@@ -2826,8 +2854,9 @@ import { Pill } from '@/primitives/Pill';
 import { DocumentIcon, ClockIcon } from '@/primitives/icons';
 import styles from './DetailsPanel.module.css';
 
-export function DetailsPanel({ message }: { message: Message | null }) {
+export function DetailsPanel() {
   const { t } = useTranslation();
+  const message = useConversationStore((s) => s.selectedMessage);
   const highlightSource = useConversationStore((s) => s.highlightSource);
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -2999,15 +3028,15 @@ export function DetailsPanel({ message }: { message: Message | null }) {
 }
 ```
 
-- [ ] **Step 5: 运行测试确认通过**
+- [ ] **Step 6: 运行测试确认通过**
 
 Run: `cd /home/hunter/code/invest-guide-workspace/invest-guide/frontend && bun run test src/layout/DetailsPanel.test.tsx`
 Expected: PASS。
 
-- [ ] **Step 6: 提交**
+- [ ] **Step 7: 提交**
 
 ```bash
-cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src/layout/DetailsPanel.tsx frontend/src/layout/DetailsPanel.module.css frontend/src/layout/DetailsPanel.test.tsx frontend/src/stores/conversationStore.ts && git commit -m "feat(frontend): 新增 DetailsPanel 详情栏组件"
+cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src/layout/DetailsPanel.tsx frontend/src/layout/DetailsPanel.module.css frontend/src/layout/DetailsPanel.test.tsx frontend/src/stores/conversationStore.ts frontend/src/i18n && git commit -m "feat(frontend): 新增 DetailsPanel 详情栏组件"
 ```
 
 ---
@@ -3018,8 +3047,23 @@ cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src
 - Create: `frontend/src/layout/UserMenu.tsx`（替换旧组件）
 - Create: `frontend/src/layout/UserMenu.module.css`
 - Modify: `frontend/src/layout/AppLayout.tsx`（重建为 AppFrame 编排）
+- Modify: `frontend/src/i18n/zh-CN.json`、`frontend/src/i18n/en-US.json`
 
-- [ ] **Step 1: 实现 UserMenu**
+- [ ] **Step 1: 补充 i18n key（UserMenu 依赖 `sidebar.userMenu.theme`）**
+
+在 `frontend/src/i18n/zh-CN.json` 与 `en-US.json` 中，在现有 `sidebar.userMenu` 对象内新增 `theme` 键：
+
+zh-CN.json:
+```json
+"userMenu": { "logout": "登出", "theme": "切换主题" }
+```
+
+en-US.json:
+```json
+"userMenu": { "logout": "Sign out", "theme": "Toggle theme" }
+```
+
+- [ ] **Step 2: 实现 UserMenu**
 
 创建 `frontend/src/layout/UserMenu.tsx`：
 ```tsx
@@ -3116,94 +3160,26 @@ export default function UserMenu() {
 }
 ```
 
-- [ ] **Step 2: 重建 AppLayout**
+- [ ] **Step 3: 重建 AppLayout**
 
-创建 `frontend/src/layout/AppLayout.tsx`（覆盖旧组件）：
-```tsx
-import { Outlet, useParams } from 'react-router-dom';
-import { useConversation } from '@/hooks/useConversation';
-import { useConversationStore } from '@/stores/conversationStore';
-import { AppFrame } from './AppFrame';
-import Sidebar from './Sidebar';
-import DetailsPanel from './DetailsPanel';
-import UserMenu from './UserMenu';
-
-export default function AppLayout() {
-  const { id } = useParams();
-  const selectedMessageId = useConversationStore((s) => s.selectedMessageId);
-  const { conv, messages } = useConversation(id ?? null);
-
-  const items = messages.data?.items ?? [];
-  const selected = items.find((m) => m.id === selectedMessageId) ?? null;
-
-  return (
-    <AppFrame
-      sidebar={
-        <>
-          <div className="min-h-0 flex-1">
-            <Sidebar />
-          </div>
-          <div style={{ borderTop: '1px solid var(--dsw-alias-border-l1)', padding: 6 }}>
-            <UserMenu />
-          </div>
-        </>
-      }
-      main={<Outlet context={{ conv, selected }} />}
-      details={<DetailsPanel message={selected} />}
-    />
-  );
-}
-```
-
-注意：此 AppLayout 使用 `useConversation` 在布局层获取消息，页面（ConversationPage）已有同样请求，SWR 会去重（同 key）。为遵循「功能逻辑不变」，ConversationPage 继续自管数据；布局层的 `messages` 仅用于详情栏选中消息查找。若担忧重复请求，可将 `useConversation` 保留在页面，详情栏通过 store 存整条 message（推荐方案见下 Step 3）。
-
-- [ ] **Step 3: （推荐）改用 store 存整条选中消息，避免布局层重复请求**
-
-调整 `conversationStore`（覆盖 Step 1 定义）：
-
-```ts
-import { create } from 'zustand';
-import type { Message } from '@/api/conversation/types';
-
-type ConversationState = {
-  activeId: string | null;
-  selectedMessage: Message | null;
-  highlightSource: number | null;
-  setActive: (id: string | null) => void;
-  clearActive: () => void;
-  setSelectedMessage: (m: Message | null) => void;
-  setHighlightSource: (n: number | null) => void;
-};
-
-export const useConversationStore = create<ConversationState>((set) => ({
-  activeId: null,
-  selectedMessage: null,
-  highlightSource: null,
-  setActive: (id) => set({ activeId: id }),
-  clearActive: () => set({ activeId: null, selectedMessage: null, highlightSource: null }),
-  setSelectedMessage: (m) => set({ selectedMessage: m, highlightSource: null }),
-  setHighlightSource: (n) => set({ highlightSource: n }),
-}));
-```
-
-相应修改 `DetailsPanel` 与测试：`DetailsPanel` 内部通过 store 读取 `selectedMessage`，组件不再接收 `message` prop。AppLayout 简化为：
-
+创建 `frontend/src/layout/AppLayout.tsx`（覆盖旧组件）。**本方案在 Task 13 已确定「store 存整条选中消息」，布局层不请求消息数据：**
 ```tsx
 import { Outlet } from 'react-router-dom';
 import { AppFrame } from './AppFrame';
 import Sidebar from './Sidebar';
 import DetailsPanel from './DetailsPanel';
 import UserMenu from './UserMenu';
+import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
   return (
     <AppFrame
       sidebar={
         <>
-          <div style={{ minHeight: 0, flex: 1 }}>
+          <div className={styles.sidebarSeat}>
             <Sidebar />
           </div>
-          <div style={{ borderTop: '1px solid var(--dsw-alias-border-l1)', padding: 6 }}>
+          <div className={styles.userMenuSeat}>
             <UserMenu />
           </div>
         </>
@@ -3215,14 +3191,19 @@ export default function AppLayout() {
 }
 ```
 
-（侧栏占位使用内联样式是为了跨组件共享 token；如需 CSS Modules 由 `AppLayout.module.css` 承载。）
+创建 `frontend/src/layout/AppLayout.module.css`：
+```css
+.sidebarSeat {
+  min-height: 0;
+  flex: 1;
+}
 
-修改 `DetailsPanel.tsx`：删除 `message` prop，改为：
-```tsx
-const selectedMessage = useConversationStore((s) => s.selectedMessage);
-const message = selectedMessage;
+.userMenuSeat {
+  flex: none;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  padding: 6px;
+}
 ```
-其余渲染逻辑不变。同步修改 `DetailsPanel.test.tsx`：用 `useConversationStore.getState().setSelectedMessage(msg)` 设置选中后再渲染 `<DetailsPanel />`。
 
 - [ ] **Step 4: 运行测试确认通过**
 
@@ -3232,7 +3213,7 @@ Expected: PASS。
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src/layout/UserMenu.tsx frontend/src/layout/UserMenu.module.css frontend/src/layout/AppLayout.tsx frontend/src/layout/DetailsPanel.tsx frontend/src/layout/DetailsPanel.test.tsx frontend/src/stores/conversationStore.ts && git commit -m "feat(frontend): 新增 UserMenu 并重构 AppLayout 为 AppFrame 编排"
+cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src/layout/UserMenu.tsx frontend/src/layout/UserMenu.module.css frontend/src/layout/AppLayout.tsx frontend/src/layout/AppLayout.module.css frontend/src/layout/DetailsPanel.tsx frontend/src/layout/DetailsPanel.test.tsx frontend/src/stores/conversationStore.ts frontend/src/i18n && git commit -m "feat(frontend): 新增 UserMenu 并重构 AppLayout 为 AppFrame 编排"
 ```
 
 ---
@@ -3777,6 +3758,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SparkleIcon } from '@/primitives/icons';
 import { useConversationStore } from '@/stores/conversationStore';
+import { useUiStore } from '@/stores/uiStore';
 import type { Message } from '@/api/conversation/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import SourcesCard from './SourcesCard';
@@ -3795,11 +3777,13 @@ export default function MessageBubble({
   const sourceRefs = useRef<(HTMLDivElement | null)[]>([]);
   const setSelectedMessage = useConversationStore((s) => s.setSelectedMessage);
   const setHighlightSource = useConversationStore((s) => s.setHighlightSource);
+  const setDetailsOpen = useUiStore((s) => s.setDetailsOpen);
 
   const handleSourceRef = useCallback(
     (n: number) => {
       setSelectedMessage(message as Message);
       setHighlightSource(n);
+      setDetailsOpen(true);
       setSourcesExpanded(true);
       requestAnimationFrame(() => {
         const el = sourceRefs.current[n - 1];
@@ -3809,7 +3793,7 @@ export default function MessageBubble({
         setTimeout(() => el.classList.remove('source-highlight'), 2200);
       });
     },
-    [message, setSelectedMessage, setHighlightSource],
+    [message, setSelectedMessage, setHighlightSource, setDetailsOpen],
   );
 
   if (isUser) {
@@ -5132,7 +5116,7 @@ cd /home/hunter/code/invest-guide-workspace/invest-guide && git add frontend/src
 - Delete: `frontend/src/styles/antd-override.css`
 - Delete: `frontend/src/components/layout/`（旧 AppLayout/Sidebar/UserMenu 已被 layout/ 替代）
 - Modify: `frontend/src/router.tsx`（更新 layout 导入路径）
-- Modify: `frontend/src/i18n/zh-CN.json`、`frontend/src/i18n/en-US.json`（新增 i18n key）
+- Verify: `frontend/src/i18n/zh-CN.json`、`frontend/src/i18n/en-US.json`（key 已在 Task 13/14 添加，此处仅验证）
 
 - [ ] **Step 1: 删除废弃文件**
 
@@ -5147,41 +5131,27 @@ Expected: 文件删除成功。
 
 编辑 `frontend/src/router.tsx`，把 `import AppLayout from './components/layout/AppLayout';` 改为 `import AppLayout from './layout/AppLayout';`。其余逻辑不变。
 
-- [ ] **Step 3: 补充 i18n key**
+- [ ] **Step 3: 验证 i18n key 完整性**
 
-在 `frontend/src/i18n/zh-CN.json` 与 `en-US.json` 中新增：
+`details.*` 与 `sidebar.userMenu.theme` 已在 Task 13/14 添加。运行验证：
 
-zh-CN.json:
-```json
-"sidebar": {
-  "title": "Invest Guide",
-  "newConversation": "新建对话",
-  "userMenu": { "logout": "登出", "theme": "切换主题" },
-  "toggle": "折叠侧边栏",
-  "group": { "today": "今天", "yesterday": "昨天", "earlier": "更早" }
-},
-"details": {
-  "title": "引用详情",
-  "empty": "选择一条回复查看引用详情",
-  "tokens": "Tokens"
-}
+Run:
+```bash
+cd /home/hunter/code/invest-guide-workspace/invest-guide/frontend && rg -n '"details"|"theme"' src/i18n/zh-CN.json src/i18n/en-US.json
 ```
+Expected: zh-CN 与 en-US 均包含 `details` 块与 `sidebar.userMenu.theme`。
 
-en-US.json:
+若无（例如执行顺序打乱导致缺失），补上：
+zh-CN.json `details`:
 ```json
-"sidebar": {
-  "title": "Invest Guide",
-  "newConversation": "New chat",
-  "userMenu": { "logout": "Sign out", "theme": "Toggle theme" },
-  "toggle": "Toggle sidebar",
-  "group": { "today": "Today", "yesterday": "Yesterday", "earlier": "Earlier" }
-},
-"details": {
-  "title": "Citation details",
-  "empty": "Select a reply to view citation details",
-  "tokens": "Tokens"
-}
+"details": { "title": "引用详情", "empty": "选择一条回复查看引用详情", "tokens": "Tokens" }
 ```
+en-US.json `details`:
+```json
+"details": { "title": "Citation details", "empty": "Select a reply to view citation details", "tokens": "Tokens" }
+```
+zh-CN.json `sidebar.userMenu`: `{ "logout": "登出", "theme": "切换主题" }`
+en-US.json `sidebar.userMenu`: `{ "logout": "Sign out", "theme": "Toggle theme" }`
 
 - [ ] **Step 4: 全量验证**
 
@@ -5288,8 +5258,9 @@ cd /home/hunter/code/invest-guide-workspace/invest-guide && git status --short
 **2. Placeholder scan:** 无 TBD/TODO；所有代码步骤含完整实现。
 
 **3. Type consistency:**
-- `conversationStore` 在 Task 13 定义为 `selectedMessageId`，Task 14 改为 `selectedMessage`——Task 14 的 Step 3 明确标注「覆盖 Step 1 定义」，需执行者按推荐方案选用其一并同步 DetailsPanel 测试。
+- `conversationStore` 在 Task 13 统一为 `selectedMessage: Message | null` + `setSelectedMessage` + `highlightSource` + `setHighlightSource`，Task 13/14/17 全部使用同一 API ✓
+- `DetailsPanel` 无 `message` prop，直接读 store（Task 13 定义、Task 14 引用一致）✓
 - `Button` 的 `danger` prop 在 Task 19 补充，Task 6 已预留扩展点 ✓
-- `DetailsPanel` 的 `message` prop 与 store 读取在 Task 14 二选一，已在步骤内说明。
+- `Sidebar` 在 `layout/` 下新建（Task 12），旧 `components/layout/` 在 Task 23 删除，router 导入在 Task 23 更新 ✓
 
-**风险提示：** Task 14 存在两套实现（布局层 useConversation vs store 存整条消息）。推荐选「store 存整条消息」，避免布局层重复请求。执行者必须同步 Task 13 的 DetailsPanel 定义，避免类型不一致。
+**风险提示：** 无已知类型冲突。执行时若 Task 12 的 Sidebar 测试因「更多」按钮 Tooltip 包裹出现查询歧义，可按按钮 aria-label（`common.delete`）定位。
