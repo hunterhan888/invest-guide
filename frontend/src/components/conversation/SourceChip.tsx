@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { KnowledgeChunkRef } from '@/api/conversation/types';
 
 type Props = {
@@ -7,7 +8,9 @@ type Props = {
 };
 
 export default function SourceChip({ n, source, onSourceRef }: Props) {
-  const handleClick = (e: React.MouseEvent) => {
+  const { t } = useTranslation();
+
+  const activate = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onSourceRef?.(n);
@@ -16,14 +19,14 @@ export default function SourceChip({ n, source, onSourceRef }: Props) {
   return (
     <span
       className="source-chip"
-      onClick={handleClick}
+      onClick={activate}
       role="button"
       tabIndex={0}
-      title={source?.title ?? `来源 ${n}`}
+      aria-label={source?.title ?? t('message.sources.fallback', { n })}
+      title={source?.title ?? t('message.sources.fallback', { n })}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick(e as unknown as React.MouseEvent);
+          activate(e);
         }
       }}
     >

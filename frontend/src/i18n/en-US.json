@@ -54,7 +54,7 @@
     "tokens": "Tokens"
   },
   "message": {
-    "sources": { "title": "Sources", "empty": "No sources" },
+    "sources": { "title": "Sources", "empty": "No sources", "fallback": "Source {{n}}" },
     "streaming": { "pending": "Thinking…", "cursor": "▍" }
   },
   "composer": {

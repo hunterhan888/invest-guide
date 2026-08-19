@@ -54,7 +54,7 @@
     "tokens": "Tokens"
   },
   "message": {
-    "sources": { "title": "引用来源", "empty": "无引用" },
+    "sources": { "title": "引用来源", "empty": "无引用", "fallback": "来源 {{n}}" },
     "streaming": { "pending": "思考中…", "cursor": "▍" }
   },
   "composer": {
