@@ -25,4 +25,9 @@ describe('Button', () => {
     render(<Button disabled>发送</Button>);
     expect(screen.getByRole('button')).toBeDisabled();
   });
+
+  it('渲染文本 children', () => {
+    render(<Button>文字</Button>);
+    expect(screen.getByRole('button')).toHaveTextContent('文字');
+  });
 });

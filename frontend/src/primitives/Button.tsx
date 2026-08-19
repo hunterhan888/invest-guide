@@ -15,7 +15,19 @@ export type ButtonProps = {
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'>;
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'ghost', size = 'md', block, icon, loading, danger, className, children, disabled, ...rest },
+  {
+    variant = 'ghost',
+    size = 'md',
+    block,
+    icon,
+    loading,
+    danger,
+    className,
+    children,
+    disabled,
+    type = 'button',
+    ...rest
+  },
   ref,
 ) {
   const classes = [
@@ -29,7 +41,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     .filter(Boolean)
     .join(' ');
   return (
-    <button ref={ref} className={classes} disabled={disabled || loading} {...rest}>
+    <button ref={ref} className={classes} disabled={disabled || loading} type={type} {...rest}>
       {icon && <span className={styles.icon}>{icon}</span>}
       {children != null && <span>{children}</span>}
       {loading && <span className={styles.spinner} aria-hidden="true" />}
