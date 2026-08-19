@@ -21,23 +21,28 @@ export default function MessageBubble({
   const sourceRefs = useRef<(HTMLDivElement | null)[]>([]);
   const setSelectedMessage = useConversationStore((s) => s.setSelectedMessage);
   const setHighlightSource = useConversationStore((s) => s.setHighlightSource);
+  const detailsOpen = useUiStore((s) => s.detailsOpen);
   const setDetailsOpen = useUiStore((s) => s.setDetailsOpen);
 
   const handleSourceRef = useCallback(
     (n: number) => {
       setSelectedMessage(message as Message);
       setHighlightSource(n);
-      setDetailsOpen(true);
-      setSourcesExpanded(true);
-      requestAnimationFrame(() => {
-        const el = sourceRefs.current[n - 1];
-        if (!el) return;
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('source-highlight');
-        setTimeout(() => el.classList.remove('source-highlight'), 2200);
-      });
+      if (!detailsOpen) {
+        // Details panel closed: fall back to expanding + highlighting the
+        // inline sources card.
+        setDetailsOpen(true);
+        setSourcesExpanded(true);
+        requestAnimationFrame(() => {
+          const el = sourceRefs.current[n - 1];
+          if (!el) return;
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('source-highlight');
+          setTimeout(() => el.classList.remove('source-highlight'), 2200);
+        });
+      }
     },
-    [message, setSelectedMessage, setHighlightSource, setDetailsOpen],
+    [message, setSelectedMessage, setHighlightSource, detailsOpen, setDetailsOpen],
   );
 
   if (isUser) {

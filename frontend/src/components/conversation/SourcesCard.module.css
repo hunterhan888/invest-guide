@@ -9,7 +9,16 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  overflow: hidden;
   color: var(--dsw-alias-label-secondary);
+}
+
+.preview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-tertiary);
 }
 
 .list {
