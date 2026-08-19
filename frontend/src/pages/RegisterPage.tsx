@@ -1,109 +1,128 @@
 import { useEffect, useState } from 'react';
-import { App as AntdApp, Button, Form, Input } from 'antd';
-import { CompassOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/primitives/Button';
+import { Input } from '@/primitives/Input';
+import { useToast } from '@/primitives/ToastProvider';
+import { CompassLogo } from '@/theme/logo';
 import { register as apiRegister } from '@/api/auth/auth';
 import { useAuthStore } from '@/stores/authStore';
-import type { RegisterRequest } from '@/api/auth/types';
+import { Field } from '@/features/auth/fields';
+import styles from './RegisterPage.module.css';
 
-type RegisterFormValues = {
+type FormValues = {
+  displayName: string;
   email: string;
   password: string;
-  displayName: string;
   confirmPassword: string;
 };
 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { message } = AntdApp.useApp();
+  const toast = useToast();
   const token = useAuthStore((s) => s.token);
   const loginStore = useAuthStore((s) => s.login);
+  const [form, setForm] = useState<FormValues>({
+    displayName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm<RegisterFormValues>();
+  const [mismatch, setMismatch] = useState(false);
 
   useEffect(() => {
     if (token) navigate('/', { replace: true });
   }, [token, navigate]);
 
-  async function onRegister(values: RegisterFormValues) {
+  function set<K extends keyof FormValues>(key: K, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (key === 'confirmPassword' || key === 'password') {
+      setMismatch(false);
+    }
+  }
+
+  async function onRegister(e: React.FormEvent) {
+    e.preventDefault();
+    if (loading) return;
+    if (form.password !== form.confirmPassword) {
+      setMismatch(true);
+      return;
+    }
     setLoading(true);
     try {
-      const req: RegisterRequest = {
-        email: values.email,
-        password: values.password,
-        displayName: values.displayName,
+      const req = {
+        email: form.email,
+        password: form.password,
+        displayName: form.displayName,
       };
       const res = await apiRegister(req);
       loginStore({ token: res.token, user: res.user, remember: true });
       navigate('/', { replace: true });
-    } catch (e: unknown) {
-      const code = (e as { code?: string })?.code;
-      message.error(code === 'CONFLICT' ? t('auth.error.conflict') : t('error.generic'));
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      toast.error(code === 'CONFLICT' ? t('auth.error.conflict') : t('error.generic'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-layout px-4">
-      <div className="w-full max-w-[360px]">
-        <div className="mb-8 text-center">
-          <div
-            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-            style={{ background: 'linear-gradient(135deg, #4096ff, #1677ff)' }}
-          >
-            <CompassOutlined style={{ fontSize: 26, color: '#fff' }} />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-fg">{t('auth.register.title')}</h1>
-          <p className="mt-1 text-fg-secondary">{t('auth.register.subtitle')}</p>
+    <div className={styles.root}>
+      <div className={styles.card}>
+        <div className={styles.head}>
+          <CompassLogo size={44} />
+          <h1 className={styles.title}>{t('auth.register.title')}</h1>
+          <p className={styles.subtitle}>{t('auth.register.subtitle')}</p>
         </div>
-        <Form form={form} layout="vertical" onFinish={onRegister}>
-          <Form.Item name="displayName" rules={[{ required: true }]}>
-            <Input placeholder={t('auth.field.displayName')} size="large" />
-          </Form.Item>
-          <Form.Item name="email" rules={[{ required: true }, { type: 'email' }]}>
+        <form onSubmit={(e) => void onRegister(e)}>
+          <Field label={t('auth.field.displayName')}>
             <Input
-              prefix={<MailOutlined className="text-fg-tertiary" />}
+              value={form.displayName}
+              onChange={(e) => set('displayName', e.target.value)}
+              placeholder={t('auth.field.displayName')}
+              required
+            />
+          </Field>
+          <Field label={t('auth.field.email')}>
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
               placeholder={t('auth.field.email')}
-              size="large"
+              required
             />
-          </Form.Item>
-          <Form.Item name="password" rules={[{ required: true }, { min: 8 }, { max: 72 }]}>
-            <Input.Password
-              prefix={<LockOutlined className="text-fg-tertiary" />}
+          </Field>
+          <Field label={t('auth.field.password')}>
+            <Input
+              type="password"
+              value={form.password}
+              onChange={(e) => set('password', e.target.value)}
               placeholder={t('auth.field.password')}
-              size="large"
+              required
+              minLength={8}
+              maxLength={72}
             />
-          </Form.Item>
-          <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            rules={[
-              { required: true },
-              ({ getFieldValue }) => ({
-                validator(_, value: string) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error(t('auth.error.passwordMismatch')));
-                },
-              }),
-            ]}
+          </Field>
+          <Field
+            label={t('auth.field.confirmPassword')}
+            error={mismatch ? t('auth.error.passwordMismatch') : undefined}
           >
-            <Input.Password
-              prefix={<LockOutlined className="text-fg-tertiary" />}
+            <Input
+              type="password"
+              value={form.confirmPassword}
+              onChange={(e) => set('confirmPassword', e.target.value)}
               placeholder={t('auth.field.confirmPassword')}
-              size="large"
+              required
             />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" block size="large" loading={loading}>
+          </Field>
+          <Button type="submit" variant="primary" block size="md" loading={loading}>
             {t('auth.register.submit')}
           </Button>
-        </Form>
-        <div className="mt-4 text-center">
-          <Button type="link" onClick={() => navigate('/login')}>
+        </form>
+        <div className={styles.switch}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
             {t('auth.register.toLogin')}
           </Button>
         </div>
