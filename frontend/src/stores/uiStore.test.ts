@@ -10,4 +10,10 @@ describe('uiStore', () => {
     expect(useUiStore.getState().sidebarCollapsed).toBe(true);
     expect(localStorage.getItem('investguide.sidebarCollapsed')).toBe('true');
   });
+
+  it('详情栏状态持久化', () => {
+    useUiStore.getState().setDetailsOpen(true);
+    expect(useUiStore.getState().detailsOpen).toBe(true);
+    expect(localStorage.getItem('investguide.detailsOpen')).toBe('true');
+  });
 });
