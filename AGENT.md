@@ -92,6 +92,9 @@
 
 ## 测试
 
+> **修改完代码后必须执行 `make check`**（项目根运行，含后端与前端全套门禁），
+> 详见 [工作流 → 开发过程中](#工作流)。
+
 **后端** — `go test`，优先使用表驱动测试；`internal/` 覆盖率目标 ≥ 70%；
 新增行为应附带聚焦测试。
 
@@ -128,6 +131,14 @@ cd frontend && bun run test:coverage     # 附带覆盖率报告
 
 ### 开发过程中
 
+**修改完代码后必须执行 `make check`（项目根目录运行），全部通过才算完成一次变更：**
+
+```bash
+make check   # 依次执行：后端 gofmt 校验 + go vet + go test、前端 lint + tsc + vitest
+```
+
+单项检查可单独执行（定位问题时用）：
+
 ```bash
 # 后端
 cd backend && gofmt -l .          # 列出需格式化的文件
@@ -154,8 +165,7 @@ cd frontend && bunx tsc --noEmit  # 校验无类型错误
 AI 未经明确要求不得推送。推送前运行：
 
 ```bash
-cd backend && gofmt -l . && go vet ./... && go test ./...
-cd frontend && bun run lint && bun run format && bunx tsc --noEmit && bun run test
+make check
 ```
 
 任一步失败即中止推送。修复、提交后重试。

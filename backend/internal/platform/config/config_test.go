@@ -24,9 +24,10 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "8080", cfg.Port)
 	assert.Equal(t, "sqlite://dev.db", cfg.DatabaseURL)
 	assert.Equal(t, 24*time.Hour, cfg.JWTExpiry)
-	assert.Equal(t, "https://api.siliconflow.cn/v1", cfg.LLMBaseURL)
-	assert.Equal(t, "Qwen/Qwen3.5-27B", cfg.LLMModel)
-	assert.Equal(t, "Qwen/Qwen3-Embedding-0.6B", cfg.EmbeddingModel)
+	// LLM/Embedding 无内置默认提供商，留空由用户配置
+	assert.Empty(t, cfg.LLMBaseURL)
+	assert.Empty(t, cfg.LLMModel)
+	assert.Empty(t, cfg.EmbeddingModel)
 	assert.Equal(t, "1024", cfg.EmbeddingDim)
 	assert.Equal(t, "", cfg.LogFile)
 	assert.Equal(t, 60, cfg.RateLimitAPI)
@@ -53,10 +54,11 @@ func TestLoad_EmbeddingFallsBackToLLM(t *testing.T) {
 	isolateFromRealDotEnv(t)
 	t.Setenv("JWT_SECRET", "test-secret-32chars-minimum-length!")
 	t.Setenv("LLM_API_KEY", "llm-key")
+	t.Setenv("LLM_BASE_URL", "https://example.com/v1")
 	cfg, err := Load()
 	assert.NoError(t, err)
 	assert.Equal(t, "llm-key", cfg.EmbeddingAPIKey)
-	assert.Equal(t, "https://api.siliconflow.cn/v1", cfg.EmbeddingBaseURL)
+	assert.Equal(t, "https://example.com/v1", cfg.EmbeddingBaseURL)
 }
 
 func TestLoad_OverridesFromEnv(t *testing.T) {

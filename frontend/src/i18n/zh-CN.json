@@ -38,7 +38,7 @@
     }
   },
   "sidebar": {
-    "title": "Invest Guide",
+    "title": "国别投资指南问答系统",
     "newConversation": "新建对话",
     "userMenu": { "logout": "登出", "theme": "切换主题" },
     "toggle": "折叠侧边栏",

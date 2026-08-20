@@ -25,8 +25,9 @@ services:
     env_file:
       - .env
     environment:
-      # 容器内连接 postgres 服务（覆盖 .env 中 localhost 默认值）
-      - DATABASE_URL=${DATABASE_URL:-postgres://invest:invest@postgres:5432/investguide?sslmode=disable}
+      # 容器内连接 postgres 服务（强制覆盖 .env 中 localhost 默认值；不要用 ${DATABASE_URL:-...}，
+      # 因为 .env 已定义该变量，:- 默认值不会生效）
+      - DATABASE_URL=postgres://invest:invest@postgres:5432/investguide?sslmode=disable
       # 日志输出到 stdout + 文件双写（文件映射到宿主机）
       - LOG_FILE=logs/backend.log
     volumes:

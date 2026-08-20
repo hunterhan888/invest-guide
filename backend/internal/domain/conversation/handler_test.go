@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -244,4 +245,81 @@ func TestHandler_Stream_ClientDisconnect_FinalizesPartial(t *testing.T) {
 	var m Message
 	require.NoError(t, db.First(&m, "id = ?", "m-asst").Error)
 	assert.Equal(t, "部分回答", m.Content, "客户端断连时已生成内容应已落库")
+}
+
+// fixedSearcher 返回固定命中的检索器，用于验证 SSE sources 事件字段名。
+type fixedSearcher struct{ hits []assistant.ContextSource }
+
+func (f *fixedSearcher) Search(context.Context, string, string, int) ([]assistant.ContextSource, error) {
+	return f.hits, nil
+}
+
+// okProvider 正常流式返回一段固定回答。
+type okProvider struct{}
+
+func (f *okProvider) Generate(context.Context, llm.GenerateRequest) (*llm.GenerateResponse, error) {
+	return &llm.GenerateResponse{Content: "ok", TokensUsed: 0}, nil
+}
+
+func (f *okProvider) Stream(ctx context.Context, _ llm.GenerateRequest) (<-chan llm.StreamChunk, error) {
+	ch := make(chan llm.StreamChunk, 1)
+	ch <- llm.StreamChunk{Delta: "越南投资建议"}
+	close(ch)
+	return ch, nil
+}
+
+func (f *okProvider) Model() string { return "fake" }
+
+// TestHandler_Stream_SourcesEvent_JSONContract 锁定 SSE sources 事件的 chunks 字段名
+// 必须为小写 id/title/snippet，与前端 KnowledgeChunkRef 契约一致。
+func TestHandler_Stream_SourcesEvent_JSONContract(t *testing.T) {
+	db := newTestDB(t)
+	_ = db.Create(&Conversation{ID: "c-1", UserID: "u-1", Title: "x"}).Error
+	_ = db.Create(&Message{ID: "m-user", ConversationID: "c-1", Role: RoleUser, Content: "越南投资"}).Error
+	_ = db.Create(&Message{ID: "m-asst", ConversationID: "c-1", Role: RoleAssistant, Content: ""}).Error
+
+	asst := assistant.NewService(&okProvider{}, &fixedSearcher{
+		hits: []assistant.ContextSource{{ChunkID: "c1", Title: "越南指南", Snippet: "河内是首都"}},
+	})
+	svc := NewService(
+		NewGORMConversationRepository(db),
+		NewGORMMessageRepository(db),
+		asst,
+	)
+	h := NewHandler(svc)
+
+	r := gin.New()
+	r.Use(func(c *gin.Context) { c.Set("userID", "u-1"); c.Next() })
+	r.GET("/c/:id/messages/:messageId/stream", h.Stream)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/c/c-1/messages/m-asst/stream", nil)
+	r.ServeHTTP(w, req)
+
+	body := w.Body.String()
+	assert.Contains(t, body, "event: sources", "流式应答应先发送 sources 事件")
+
+	// 提取 sources 事件的 data 行并断言字段名
+	var dataLine string
+	for _, line := range strings.Split(body, "\n") {
+		if strings.HasPrefix(line, "data: ") {
+			dataLine = strings.TrimPrefix(line, "data: ")
+			break
+		}
+	}
+	require.NotEmpty(t, dataLine, "sources 事件应有 data 行")
+
+	var payload struct {
+		Chunks []map[string]string `json:"chunks"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(dataLine), &payload))
+	require.Len(t, payload.Chunks, 1)
+	chunk := payload.Chunks[0]
+
+	assert.Equal(t, "c1", chunk["id"], `chunks[i].id 应为小写 "id"（来自 ChunkID）`)
+	assert.Equal(t, "越南指南", chunk["title"], `chunks[i].title 应为小写 "title"`)
+	assert.Equal(t, "河内是首都", chunk["snippet"], `chunks[i].snippet 应为小写 "snippet"`)
+	assert.NotContains(t, chunk, "ChunkID", "不应出现 Go 默认大写字段名")
+	assert.NotContains(t, chunk, "Title", "不应出现 Go 默认大写字段名")
+	assert.NotContains(t, chunk, "Snippet", "不应出现 Go 默认大写字段名")
 }

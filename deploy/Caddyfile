@@ -1,0 +1,17 @@
+# Invest Guide 生产反向代理
+# - DOMAIN 未设置（或 http://IP）时：仅 HTTP，用 http://<服务器IP> 访问
+# - DOMAIN 设置为真实域名时：自动签发/续期 HTTPS 证书
+
+{$DOMAIN:http://localhost} {
+    encode zstd gzip
+
+    # API 请求转发到后端（保留 /api/v1 前缀）
+    handle /api/v1/* {
+        reverse_proxy backend:8080
+    }
+
+    # 其余请求交给前端 nginx（SPA + 静态资源）
+    handle {
+        reverse_proxy frontend:80
+    }
+}

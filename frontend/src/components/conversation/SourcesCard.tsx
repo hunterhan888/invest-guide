@@ -31,7 +31,7 @@ export default function SourcesCard({ sources, expanded, onToggle, registerSourc
       <div className={styles.list}>
         {sources.map((s, i) => (
           <div
-            key={s.id}
+            key={s.id ?? `source-${i}`}
             id={`src-${i + 1}`}
             ref={(el) => registerSourceRef?.(i, el)}
             className={styles.item}

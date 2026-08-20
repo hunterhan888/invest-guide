@@ -1,0 +1,72 @@
+# ============================================================
+# 生产部署：编译产物 + nginx 托管 + Caddy 自动 HTTPS
+#
+# 用法：
+#   1. cp .env.example .env，填 JWT_SECRET / LLM_API_KEY / DOMAIN / POSTGRES_PASSWORD
+#   2. docker compose -f docker-compose.prod.yml up -d --build
+#   3. 无域名（未备案）时 DOMAIN 留空，用 http://<服务器IP> 访问
+#      有域名（已备案）时 DOMAIN=example.com，自动 HTTPS
+# ============================================================
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-invest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-invest}
+      POSTGRES_DB: ${POSTGRES_DB:-investguide}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-invest} -d ${POSTGRES_DB:-investguide}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: prod
+    env_file:
+      - .env
+    environment:
+      # 容器内连接 postgres 服务（覆盖 .env 中 localhost 默认值）
+      DATABASE_URL: postgres://${POSTGRES_USER:-invest}:${POSTGRES_PASSWORD:-invest}@postgres:5432/${POSTGRES_DB:-investguide}?sslmode=disable
+      # 日志只写 stdout，便于 docker compose logs 查看
+      LOG_FILE: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+      target: prod
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

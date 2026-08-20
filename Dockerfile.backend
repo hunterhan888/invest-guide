@@ -3,11 +3,14 @@
 # ============================================================
 FROM golang:1.26-alpine AS dev
 
+# 使用国内代理，避免 proxy.golang.org 网络不稳定导致下载中断
+ENV GOPROXY=https://goproxy.cn,direct
+
 # CGO 依赖（SQLite 驱动需要）
 RUN apk add --no-cache gcc musl-dev
 
 # 安装 Air 热重载工具
-RUN go install github.com/air-verse/air/v2@latest
+RUN go install github.com/air-verse/air@latest
 
 WORKDIR /app/backend
 
@@ -28,6 +31,8 @@ CMD ["air"]
 # 生产阶段：编译静态二进制，最小运行时镜像
 # ============================================================
 FROM golang:1.26-alpine AS builder
+
+ENV GOPROXY=https://goproxy.cn,direct
 
 RUN apk add --no-cache gcc musl-dev
 

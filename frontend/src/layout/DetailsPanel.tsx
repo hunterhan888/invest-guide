@@ -44,7 +44,7 @@ export function DetailsPanel() {
       <div className={styles.sourceList}>
         {message.sources.map((s, i) => (
           <div
-            key={s.id}
+            key={s.id ?? `source-${i}`}
             ref={(el) => {
               refs.current[i] = el;
             }}
